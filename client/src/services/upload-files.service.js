@@ -18,6 +18,10 @@ class UploadFilesService {
   getFiles() {
     return http.get("/get");
   }
+
+  download() {
+    return http.get("/download");
+  }
 }
 
 export default new UploadFilesService();

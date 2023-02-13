@@ -5,19 +5,14 @@ function App() {
   return (
     <div
       className="Maincontainer"
-      style={{ width: "100%", display: "flex", justifyContent: "center" }}
+      style={{
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        maxHeight: "750px",
+      }}
     >
-      <div
-        className="container"
-        style={{ width: "600px", display: "flex", flexDirection: "column" }}
-      >
-        <div style={{ margin: "20px 0" }}>
-          <h3>Finkraft.ai</h3>
-          <h4>React Drag & Drop File Upload example</h4>
-        </div>
-
-        <UploadFiles />
-      </div>
+      <UploadFiles />
     </div>
   );
 }
