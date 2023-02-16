@@ -46,33 +46,42 @@ export default class UploadFiles extends Component {
       selectedFiles: this.state.selectedFiles,
     });
 
-    UploadService.upload(selectedFiles, (event) => {
-      this.setState({
-        progress: Math.round((100 * event.loaded) / event.total),
-      });
-    })
-      .then((response) => {
+    if (selectedFiles[0].name == "__nameUpdateFile__.csv") {
+      UploadService.update(selectedFiles).then((response) => {
         this.setState({
           message: response.data.message,
         });
         return UploadService.getFiles();
-      })
-      .then((files) => {
-        this.setState({
-          fileInfos: files.data,
-        });
-      })
-      .catch(() => {
-        this.setState({
-          progress: 0,
-          message: "Could not upload the file!",
-          currentFile: undefined,
-        });
       });
+    } else {
+      UploadService.upload(selectedFiles, (event) => {
+        this.setState({
+          progress: Math.round((100 * event.loaded) / event.total),
+        });
+      })
+        .then((response) => {
+          this.setState({
+            message: response.data.message,
+          });
+          return UploadService.getFiles();
+        })
+        .then((files) => {
+          this.setState({
+            fileInfos: files.data,
+          });
+        })
+        .catch(() => {
+          this.setState({
+            progress: 0,
+            message: "Could not upload the file!",
+            currentFile: undefined,
+          });
+        });
 
-    this.setState({
-      selectedFiles: undefined,
-    });
+      this.setState({
+        selectedFiles: undefined,
+      });
+    }
   }
 
   onDrop(files) {
@@ -124,9 +133,10 @@ export default class UploadFiles extends Component {
           }}
         >
           <div style={{ margin: "20px 0" }}>
-            <h2 style={{ color: "#767676" }}>
-              <span style={{ color: "#4ec5d6" }}>fin</span>kraft.ai
-            </h2>
+            <h1 style={{ color: "#767676" }}>
+              <span style={{ color: "#4ec5d6" }}>fin</span>
+              <span style={{ fontWeight: 200 }}>kraft.ai</span>
+            </h1>
             <h6>
               The drag and drop upload feature is a user-friendly way to upload
               files to a website or application. It allows users to select one

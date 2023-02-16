@@ -22,42 +22,6 @@ const s3Client = new AWS.S3({
   region: process.env.region,
 });
 
-app.post("/upload", upload.array("files"), (req, res) => {
-  const promise_array = [];
-  req.files.forEach((file) => {
-    let fileExtension = path.extname(file.originalname);
-
-    let fileNameWithPath =
-      Array.from(file.originalname)[0] == "/"
-        ? file.originalname.substring(1)
-        : file.originalname;
-
-    let bucketName =
-      fileExtension == ".zip"
-        ? process.env.BucketSourceZip
-        : process.env.Bucket;
-
-    const params = {
-      Acl: "public-read",
-      Bucket: bucketName,
-      Key: fileNameWithPath,
-      Body: file.buffer,
-    };
-    const putObjectPromise = s3Client.upload(params).promise();
-    promise_array.push(putObjectPromise);
-  });
-  Promise.all(promise_array)
-    .then((values) => {
-      console.log(values);
-      const urls = values.map((value) => value.Location);
-      console.log(urls);
-      res.send(urls);
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
-
 app.get("/get", (req, res) => {
   var params = {
     Bucket: process.env.Bucket,
@@ -110,6 +74,84 @@ app.get("/download", (req, res) => {
     });
     res.send(dataArray);
   });
+});
+
+app.post("/upload", upload.array("files"), (req, res) => {
+  const promise_array = [];
+  req.files.forEach((file) => {
+    let fileExtension = path.extname(file.originalname);
+
+    let fileNameWithPath =
+      Array.from(file.originalname)[0] == "/"
+        ? file.originalname.substring(1)
+        : file.originalname;
+
+    let bucketName =
+      fileExtension == ".zip"
+        ? process.env.BucketSourceZip
+        : process.env.Bucket;
+
+    const params = {
+      Acl: "public-read",
+      Bucket: bucketName,
+      Key: fileNameWithPath,
+      Body: file.buffer,
+    };
+    const putObjectPromise = s3Client.upload(params).promise();
+    promise_array.push(putObjectPromise);
+  });
+  Promise.all(promise_array)
+    .then((values) => {
+      console.log(values);
+      const urls = values.map((value) => value.Location);
+      console.log(urls);
+      res.send(urls);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
+app.post("/update", upload.array("files"), (req, res) => {
+  const promise_array = [];
+  req.files.forEach((file) => {
+    let fileData = file.buffer
+      .toString()
+      .replace(/['"]+/g, "")
+      .split("\n")
+      .map((e) => e.trim())
+      .map((e) => e.split(",").map((e) => e.trim()));
+    let indoxofKey = fileData[0].indexOf("Key");
+    let indexofNewFileName = fileData[0].indexOf("New File Name");
+    let indexofDestKey = fileData[0].indexOf("New Folder Path");
+    fileData.slice(1).forEach((eachRow) => {
+      let sourchKey = eachRow[indoxofKey];
+      let newFileName = eachRow[indexofNewFileName];
+      let destinationPath = eachRow[indexofDestKey];
+      if (
+        typeof newFileName != "undefined" &&
+        typeof destinationPath != "undefined"
+      ) {
+        const params = {
+          Bucket: process.env.Bucket,
+          CopySource: process.env.Bucket + "/" + sourchKey,
+          Key: destinationPath + "/" + newFileName,
+        };
+        const putObjectPromise = s3Client.copyObject(params).promise();
+        promise_array.push(putObjectPromise);
+      }
+    });
+  });
+  Promise.all(promise_array)
+    .then((values) => {
+      console.log(values);
+      const urls = values.map((value) => value.Location);
+      console.log(urls);
+      res.send(urls);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
 });
 
 app.listen(process.env.PORT, () => {

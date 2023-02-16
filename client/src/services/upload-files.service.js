@@ -22,6 +22,18 @@ class UploadFilesService {
   download() {
     return http.get("/download");
   }
+
+  update(files) {
+    let formData = new FormData();
+    files.forEach((file) => {
+      formData.append("files", file, file.path);
+    });
+    return http.post("/update", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
 }
 
 export default new UploadFilesService();
